@@ -23,6 +23,7 @@
 using ::apollo::common::Point3D;
 using ::apollo::perception::PerceptionObstacles;
 using ::apollo::perception::PerceptionObstacle;
+using Type = ::apollo::perception::PerceptionObstacle_Type;
 using SubType = ::apollo::perception::PerceptionObstacle_SubType;
 
 namespace apollo {
@@ -51,12 +52,14 @@ public:
       mPosition.y = position.y();
       mPosition.z = position.z();
     }
-    void setSubType(const SubType& type) {mType = type;}
+    void setSubType(const SubType& type) {mSubType = type;}
+    void setType(const Type& type) {mType = type;}
 private:
   friend class ObstaclesInformation;
   vecD3 mVelocity = {0.0, 0.0, 0.0,};
   vecD3 mPosition = {0.0, 0.0, 0.0,};
-  SubType mType = SubType::PerceptionObstacle_SubType_ST_UNKNOWN;
+  Type mType = Type::PerceptionObstacle_Type_UNKNOWN;
+  SubType mSubType = SubType::PerceptionObstacle_SubType_ST_UNKNOWN;
 };
 
 class ObstaclesInformation {
@@ -71,13 +74,14 @@ class ObstaclesInformation {
       for(size_t i = 0; i < mObstacles.size(); ++i) {
         std::cout << "Obstacle: "  << i << std::endl;
         std::cout << "  - type: " << getTypeString(mObstacles[i].mType) << std::endl;
+        std::cout << "  - sub-type: " << getSubTypeString(mObstacles[i].mSubType) << std::endl;
         std::cout << "  - position: " << getVecD3String(mObstacles[i].mPosition) << std::endl;
         std::cout << "  - velocity: " << getVecD3String(mObstacles[i].mVelocity) << std::endl;
       }
     }
 
   private:
-    std::string getTypeString(SubType type) {
+    std::string getSubTypeString(SubType type) {
       if(type == SubType::PerceptionObstacle_SubType_ST_BUS)
         return "BUS";
       if(type == SubType::PerceptionObstacle_SubType_ST_CAR)
@@ -97,6 +101,20 @@ class ObstaclesInformation {
       if(type == SubType::PerceptionObstacle_SubType_ST_UNKNOWN_UNMOVABLE)
         return "UNKNOWN UNMOVABLE";
       return "UNKkOWN";
+    }
+
+    std::string getTypeString(Type type) {
+      if(type == Type::PerceptionObstacle_Type_BICYCLE)
+        return "BICYCLE";
+      if(type == Type::PerceptionObstacle_Type_PEDESTRIAN)
+        return "PEDESTRIAN";
+      if(type == Type::PerceptionObstacle_Type_UNKNOWN_MOVABLE)
+        return "MOVABLE";
+      if(type == Type::PerceptionObstacle_Type_UNKNOWN_UNMOVABLE)
+        return "UNMOVABLE";
+      if(type == Type::PerceptionObstacle_Type_VEHICLE)
+        return "VEHICLE";
+      return "UNKNOWN";
     }
 
     std::string getVecD3String(vecD3 vec) {
@@ -123,6 +141,8 @@ bool CommonComponentSample::Proc(const std::shared_ptr<PerceptionObstacles>& msg
       data.setPosition(obstacle.position());
     if(obstacle.has_velocity())
       data.setVelocity(obstacle.velocity());
+    if(obstacle.has_type())
+      data.setType(obstacle.type());
     if(obstacle.has_sub_type())
       data.setSubType(obstacle.sub_type());
     obstacleInfo[i] = data;
